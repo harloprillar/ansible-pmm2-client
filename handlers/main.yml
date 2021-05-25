@@ -1,0 +1,10 @@
+---
+- name: reload systemd
+  systemd:
+    daemon-reload: true
+
+- name: restart pmm2-client
+  systemd: 
+    daemon_reload: true
+    name: pmm2-client
+    state: restarted

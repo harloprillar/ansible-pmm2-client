@@ -1,0 +1,45 @@
+---
+- name: Ensure that Percona Release RedHat package repository is present
+  yum:
+    name: "https://repo.percona.com/yum/percona-release-latest.noarch.rpm"
+    state: present
+    disable_gpg_check: yes
+  when: "ansible_os_family == 'RedHat'"
+
+- name: Ensure that Percona Release Debian package repository is present
+  apt:
+    deb: "https://repo.percona.com/apt/percona-release_latest.generic_all.deb" 
+    state: present
+  when: "ansible_os_family == 'Debian'"
+
+- name: Ensure that pmm2-client installed
+  package:
+    name: pmm2-client
+    state: present
+
+# currently pmm-agent sends even non-error messages to stderr and the system log file which significantly clogs them
+- name: Disable logging
+  block:
+    - name: Create systemd drop-in directory
+      file:
+        path: /etc/systemd/system/pmm-agent.service.d
+        state: directory
+        mode: 0755
+    - name: Create systemd drop-in file
+      copy:
+        content: |
+          [Service]
+          StandardOutput=null
+          StandardError=null
+        dest: /etc/systemd/system/pmm-agent.service.d/override.conf
+        mode: 0644
+      notify:
+        - reload systemd
+  when: pmm2_client_disable_log
+
+- name: Ensure that pmm-agent enabled and running
+  systemd:
+    daemon_reload: yes
+    name: pmm-agent
+    enabled: yes 
+    state: started

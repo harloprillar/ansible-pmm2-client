@@ -1,0 +1,15 @@
+- name: Check if pmm2-client configured
+  command: "pmm-admin list"
+  ignore_errors: yes
+  changed_when: false
+  register: pmm_admin_list
+
+- name: Configure connection to pmm-server
+  command: |
+    pmm-admin config --server-insecure-tls --server-url=https://{{ pmm2_client_server_user }}:{{ pmm2_client_server_password }}@{{ pmm2_client_server_host }}:{{ pmm2_client_server_port }} {{ pmm2_client_node_address | default('') }} {{ pmm2_client_node_type | default('') }} {{ pmm2_client_node_name | default('') }}
+  when: pmm_admin_list.rc == 1
+
+- name: Configure mysql service
+  import_tasks: configure_mysql.yml
+  when: pmm2_client_services.mysql.enabled
+

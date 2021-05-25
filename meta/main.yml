@@ -1,0 +1,28 @@
+---
+galaxy_info:
+  role_name: pmm2_client
+  author: harloprillar
+  description: Percona Monitoring and Management 2 client for Debian based and Red Hat based distributions
+  company: N/A
+  license: MIT
+  min_ansible_version: 2.1
+  platforms:
+    - name: Debian
+      versions:
+      - all
+    - name: EL
+      versions:
+      - all
+    - name: Ubuntu
+      versions:
+      - all
+    - name: Fedora
+      versions:
+      - all
+  galaxy_tags:
+    - percona
+    - pmm2
+    - monitoring
+    - database
+dependencies: []
+

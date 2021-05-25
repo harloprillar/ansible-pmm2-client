@@ -1,0 +1,59 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: instance-pmm-server
+    image: percona/pmm-server:2
+    pre_build_image: true
+    override_command: false
+    networks:
+      - name: molecule
+  - name: instance-mysql
+    image: mysql:8.0
+    pre_build_image: true
+    override_command: false
+    env:
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - name: molecule
+  - name: instance-pmm-client
+    image: centos:8
+    pre_build_image: false
+    privileged: true
+    command: /sbin/init
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    networks:
+      - name: molecule
+provisioner:
+  name: ansible
+  inventory:
+    host_vars:
+      instance-pmm-client:
+        pmm2_client_server_host: instance-pmm-server
+        pmm2_client_services:
+          mysql:
+            enabled: true
+            tls: false
+            name: mysql-instance-pmm-client
+            create_user: true
+            login_user: root
+            login_password: root
+            login_host: instance-mysql
+            login_port: 3306
+            user: pmm
+            password: pmm
+            plugin: mysql_native_password
+            privileges: "*.*:SELECT,PROCESS,SUPER,REPLICATION CLIENT,RELOAD"
+            query_source: perfschema
+      instance-mysql:
+        ansible_python_interpreter: /usr/bin/python3
+verifier:
+  name: ansible
+lint: |
+  set -e
+  yamllint .
+  ansible-lint .
+

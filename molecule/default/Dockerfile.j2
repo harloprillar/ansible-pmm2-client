@@ -1,0 +1,7 @@
+FROM centos:8
+
+RUN yum -y update \
+  && yum -y install python3 python3-pip \
+  && pip3 install --upgrade pip \
+  && pip3 install pymysql cryptography
+

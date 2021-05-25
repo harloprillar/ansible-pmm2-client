@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: instance-pmm-client
+  tasks:
+    - name: "Include pmm2-client"
+      include_role:
+        name: "pmm2-client"

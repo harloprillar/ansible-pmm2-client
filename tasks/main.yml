@@ -1,0 +1,29 @@
+---
+- name: Gather OS distribution facts
+  include_vars: "{{ lookup('first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
+        - "{{ ansible_distribution }}.yml"
+        - "{{ ansible_os_family }}.yml"
+      paths:
+        - vars
+  tags:
+    - always
+
+- name: Run preflight checks
+  import_tasks: preflight.yml
+  tags: 
+    - always
+
+- name: Ensure that pmm2-client installed and running
+  import_tasks: install.yml
+  tags:
+    - pmm2_client_install
+
+- name: Ensure that pmm2-client configured
+  import_tasks: configure.yml
+  tags:
+    - pmm2_client_configure
+

@@ -1,0 +1,28 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: instance-pmm-client
+  gather_facts: false
+  tasks:
+
+  - name: Gather services stats
+    service_facts:
+
+  - name: Check if pmm-agent running
+    assert:
+      that: ansible_facts.services["pmm-agent.service"].state is defined and ansible_facts.services["pmm-agent.service"].state == "running" 
+
+  - name: Gather pmm-admin status
+    command: pmm-admin list
+    ignore_errors: yes
+    changed_when: false
+    register: pmm_admin_list
+
+  - name: Check if pmm_agent connected
+    assert:
+      that: pmm_admin_list.stdout is regex("pmm_agent.+connected", ignorecase=true, multiline=true)
+
+  - name: Check if mysql service configured
+    assert:
+      that: pmm_admin_list.stdout is regex("mysql.+{{ pmm2_client_services.mysql.name }}", ignorecase=true, multiline=true)

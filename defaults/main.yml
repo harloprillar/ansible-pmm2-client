@@ -1,0 +1,29 @@
+---
+pmm2_client_disable_log: true
+
+pmm2_client_server_user: admin
+pmm2_client_server_password: admin
+pmm2_client_server_host: localhost
+pmm2_client_server_port: 443
+pmm2_client_node_address: ""
+pmm2_client_node_type: ""
+pmm2_client_node_name: ""
+
+# configure pmm2_client services
+pmm2_client_services:
+  mysql:
+    enabled: false
+    tls: false
+    name: mysql-{{ ansible_hostname }}
+    create_user: false
+    login_user: root
+    login_password: pass
+    login_host: localhost
+    login_port: 3306
+    user: pmm 
+    password: pass
+    plugin: mysql_native_password
+    privileges: "*.*:SELECT, PROCESS, SUPER, REPLICATION CLIENT, RELOAD"
+    # query_source: querylog | perfschema    
+    query_source: perfschema
+

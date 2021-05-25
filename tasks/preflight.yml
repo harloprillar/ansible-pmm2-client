@@ -1,0 +1,5 @@
+---
+- name: Ensure that systemd is in use
+  assert:
+    that:
+      - "ansible_service_mgr == 'systemd'"
