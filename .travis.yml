@@ -1,13 +1,14 @@
 ---
-sudo: required
 language: python
-services:
-  - docker
+services: docker
+
 install:
-  - python3 -m pip install molecule docker
+  - python3 -m pip install molecule[docker] yamllint ansible-lint docker
+
 script:
   - molecule --version
   - ansible --version
   - molecule test
+
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
