@@ -3,11 +3,9 @@ language: python
 services: docker
 
 install:
-  - python3 -m pip install molecule[docker] yamllint ansible-lint docker
+  - python3 -m pip install ansible molecule[docker] yamllint ansible-lint docker
 
 script:
-  - molecule --version
-  - ansible --version
   - molecule test
 
 notifications:
