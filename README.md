@@ -1,4 +1,4 @@
-Role Name
+pmm2_client
 =========
 
 Ansible role that installs and configures Percona Monitoring and Management client 2 

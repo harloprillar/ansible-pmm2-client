@@ -26,4 +26,3 @@
   import_tasks: configure.yml
   tags:
     - pmm2_client_configure
-
