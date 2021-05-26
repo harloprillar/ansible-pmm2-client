@@ -3,7 +3,7 @@
 
 - name: Verify
   hosts: instance-pmm-client
-  gather_facts: false
+  gather_facts: true
   tasks:
 
   - name: Gather services stats
@@ -25,4 +25,4 @@
 
   - name: Check if mysql service configured
     assert:
-      that: pmm_admin_list.stdout is regex("mysql.+{{ pmm2_client_services.mysql.name }}", ignorecase=true, multiline=true)
+      that: pmm_admin_list.stdout is regex("mysql.+{{ ansible_nodename }}-mysql", ignorecase=true, multiline=true)

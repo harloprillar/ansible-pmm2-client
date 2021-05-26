@@ -1,23 +1,22 @@
 - name: Add pmm2 user to mysql instance
   mysql_user:
-    login_user: "{{ pmm2_client_services.mysql.login_user }}"
-    login_password: "{{ pmm2_client_services.mysql.login_password }}"
-    login_host: "{{ pmm2_client_services.mysql.login_host }}"
-    login_port: "{{ pmm2_client_services.mysql.login_port }}"
-    user: "{{ pmm2_client_services.mysql.user }}"
-    password: "{{ pmm2_client_services.mysql.password }}"
-    plugin: "{{ pmm2_client_services.mysql.plugin }}"
-    priv: "{{ pmm2_client_services.mysql.privileges }}"
-    host: "%"
+    login_user: "{{ pmm2_client_mysql_login_user }}"
+    login_password: "{{ pmm2_client_mysql_login_password }}"
+    login_host: "{{ pmm2_client_mysql_login_host }}"
+    login_port: "{{ pmm2_client_mysql_login_port }}"
+    user: "{{ pmm2_client_mysql_user }}"
+    password: "{{ pmm2_client_mysql_password }}"
+    host: "{{ pmm2_client_mysql_host }}"
+    priv: "{{ pmm2_client_mysql_privileges }}"
     state: present
-  when: pmm2_client_services.mysql.create_user
+  when: pmm2_client_mysql_create_user
 
 - name: Execute runtime mysql queries
   mysql_query:
-    login_user: "{{ pmm2_client_services.mysql.login_user }}"
-    login_password: "{{ pmm2_client_services.mysql.login_password }}"
-    login_host: "{{ pmm2_client_services.mysql.login_host }}"
-    login_port: "{{ pmm2_client_services.mysql.login_port }}"
+    login_user: "{{ pmm2_client_mysql_login_user }}"
+    login_password: "{{ pmm2_client_mysql_login_password }}"
+    login_host: "{{ pmm2_client_mysql_login_host }}"
+    login_port: "{{ pmm2_client_mysql_login_port }}"
     login_db: performance_schema
     query:
       - UPDATE performance_schema.setup_consumers SET ENABLED = 'YES' WHERE NAME LIKE '%statements%';
@@ -25,28 +24,28 @@
 
 - name: Determine mysql version
   mysql_query:
-    login_user: "{{ pmm2_client_services.mysql.login_user }}"
-    login_password: "{{ pmm2_client_services.mysql.login_password }}"
-    login_host: "{{ pmm2_client_services.mysql.login_host }}"
-    login_port: "{{ pmm2_client_services.mysql.login_port }}"
+    login_user: "{{ pmm2_client_mysql_login_user }}"
+    login_password: "{{ pmm2_client_mysql_login_password }}"
+    login_host: "{{ pmm2_client_mysql_login_host }}"
+    login_port: "{{ pmm2_client_mysql_login_port }}"
     query: SHOW VARIABLES LIKE "version";
   register: mysql_version
 
 - name: Determine mysql version comment
   mysql_query:
-    login_user: "{{ pmm2_client_services.mysql.login_user }}"
-    login_password: "{{ pmm2_client_services.mysql.login_password }}"
-    login_host: "{{ pmm2_client_services.mysql.login_host }}"
-    login_port: "{{ pmm2_client_services.mysql.login_port }}"
+    login_user: "{{ pmm2_client_mysql_login_user }}"
+    login_password: "{{ pmm2_client_mysql_login_password }}"
+    login_host: "{{ pmm2_client_mysql_login_host }}"
+    login_port: "{{ pmm2_client_mysql_login_port }}"
     query: SHOW VARIABLES LIKE "version_comment";
   register: mysql_version_comment
 
 - name: Execute MariaDB 10.5.7 or lower runtime queries
   mysql_query:
-    login_user: "{{ pmm2_client_services.mysql.login_user }}"
-    login_password: "{{ pmm2_client_services.mysql.login_password }}"
-    login_host: "{{ pmm2_client_services.mysql.login_host }}"
-    login_port: "{{ pmm2_client_services.mysql.login_port }}"
+    login_user: "{{ pmm2_client_mysql_login_user }}"
+    login_password: "{{ pmm2_client_mysql_login_password }}"
+    login_host: "{{ pmm2_client_mysql_login_host }}"
+    login_port: "{{ pmm2_client_mysql_login_port }}"
     login_db: performance_schema
     query:
       - UPDATE performance_schema.setup_instruments SET ENABLED = 'YES', TIMED = 'YES' WHERE NAME LIKE 'statement/%';
@@ -58,12 +57,11 @@
 - name: Register mysql service to pmm2 server
   command: >-
     pmm-admin add mysql
-    --username={{ pmm2_client_services.mysql.user | quote }}
-    --password={{ pmm2_client_services.mysql.password | quote }}
-    {{ "--tls --tls-skip-verify" if pmm2_client_services.mysql.tls else omit }}
-    --query-source={{ pmm2_client_services.mysql.query_source | quote }}
-    --host={{ pmm2_client_services.mysql.login_host | quote }}
-    --port={{ pmm2_client_services.mysql.login_port | quote }}
-    --service-name={{ pmm2_client_services.mysql.name | quote }}
-  when: pmm2_client_services.mysql.name not in pmm_admin_list.stdout 
+    --username={{ pmm2_client_mysql_user | quote }}
+    --password={{ pmm2_client_mysql_password | quote }}
+    {{ "--tls --tls-skip-verify" if pmm2_client_mysql_enable_tls else "" }}
+    --query-source={{ pmm2_client_mysql_query_source | quote }}
+    --host={{ pmm2_client_mysql_login_host | quote }}
+    --port={{ pmm2_client_mysql_login_port | quote }}
+  when: 'ansible_nodename + "-mysql" not in pmm_admin_list.stdout'
 

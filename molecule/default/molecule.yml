@@ -32,22 +32,12 @@ provisioner:
   inventory:
     host_vars:
       instance-pmm-client:
+        pmm2_client_disable_log: true
         pmm2_client_server_host: instance-pmm-server
-        pmm2_client_services:
-          mysql:
-            enabled: true
-            tls: false
-            name: mysql-instance-pmm-client
-            create_user: true
-            login_user: root
-            login_password: root
-            login_host: instance-mysql
-            login_port: 3306
-            user: pmm
-            password: pmm
-            plugin: mysql_native_password
-            privileges: "*.*:SELECT,PROCESS,SUPER,REPLICATION CLIENT,RELOAD"
-            query_source: perfschema
+        pmm2_client_enabled_services:
+          - mysql
+        pmm2_client_mysql_login_host: instance-mysql
+        pmm2_client_mysql_login_password: root
       instance-mysql:
         ansible_python_interpreter: /usr/bin/python3
 verifier:
