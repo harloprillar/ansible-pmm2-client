@@ -1,7 +1,9 @@
-pmm2_client
+Ansible role: pmm2_client
 =========
+[![Build Status](https://travis-ci.com/harloprillar/ansible-pmm2-client.svg?branch=master)](https://travis-ci.com/harloprillar/ansible-pmm2-client)
 
-Ansible role that installs and configures Percona Monitoring and Management client 2 
+Ansible role that installs and configures Percona Monitoring and Management client version 2. 
+Currently only mysql client service supported. 
 
 Requirements
 ------------
@@ -21,17 +23,17 @@ Role Variables
 | `pmm2_client_node_name` | | Node name (autodetected by pmm-admin if not defined) |
 | `pmm2_client_disable_log` | false | Disable logging to prevent littering system log file |
 | `pmm2_client_enabled_services` | [] | List of services to configure. Currently only "mysql" is supported. |
-| `pmm2_client_mysql_login_user` | root | Mysql service: instance login user. |
-| `pmm2_client_mysql_login_password` | root | Mysql service: instance user password. |
-| `pmm2_client_mysql_login_host` | localhost | Mysql service: instance host. |
-| `pmm2_client_mysql_login_port` | 3306 | Mysql service: instance port. |
-| `pmm2_client_mysql_enable_tls` | false | Mysql service: enable TLS connection to mysql database. |
-| `pmm2_client_mysql_create_user` | true | Mysql service: create PMM user in mysql instance. |
-| `pmm2_client_mysql_user` | pmm | Mysql service: user name for PMM user. |
-| `pmm2_client_mysql_password` | pmm | Mysql service: password for PMM user. |
-| `pmm2_client_mysql_host` | % | Mysql service: allowed hosts for PMM user. |
-| `pmm2_client_mysql_privileges` | \*.\*:SELECT,PROCESS,SUPER,REPLICATION CLIENT,RELOAD | Mysql service: privileges defined for PMM user. |
-| `pmm2_client_mysql_query_source` | perfschema | Mysql service: the query source. Currently only "perfschema" is supported |
+| `pmm2_client_mysql_login_user` | root | Mysql instance login user. |
+| `pmm2_client_mysql_login_password` | root | Mysql instance user password. |
+| `pmm2_client_mysql_login_host` | localhost | Mysql instance host. |
+| `pmm2_client_mysql_login_port` | 3306 | Mysql instance port. |
+| `pmm2_client_mysql_enable_tls` | false | Mysql enable TLS connection to mysql database. |
+| `pmm2_client_mysql_create_user` | true | Mysql create PMM user in mysql instance. |
+| `pmm2_client_mysql_user` | pmm | Mysql user name for PMM user. |
+| `pmm2_client_mysql_password` | pmm | Mysql password for PMM user. |
+| `pmm2_client_mysql_host` | % | Mysql allowed hosts for PMM user. |
+| `pmm2_client_mysql_privileges` | \*.\*:SELECT,PROCESS,SUPER,REPLICATION CLIENT,RELOAD | Mysql privileges defined for PMM user. |
+| `pmm2_client_mysql_query_source` | perfschema | Mysql the query source. Currently only "perfschema" is supported |
 
 
 Example Playbook
@@ -40,8 +42,6 @@ Example Playbook
 An example playbook that installs and conigures pmm-client with mysql service:
 
     - hosts: mysql-servers
-      roles:
-         - harloprillar.pmm2_client
       vars:
         pmm2_client_server_host: instance-pmm-server
         pmm2_client_server_user: admin
@@ -51,6 +51,8 @@ An example playbook that installs and conigures pmm-client with mysql service:
         pmm2_client_mysql_login_host: instance-mysql
         pmm2_client_mysql_login_user: root
         pmm2_client_mysql_login_password: root
+      roles:
+         - harloprillar.pmm2_client
 
 License
 -------

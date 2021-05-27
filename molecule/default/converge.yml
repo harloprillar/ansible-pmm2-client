@@ -1,6 +1,13 @@
 ---
 - name: Converge
   hosts: instance-pmm-client
+  vars:
+    pmm2_client_disable_log: true
+    pmm2_client_server_host: instance-pmm-server
+    pmm2_client_enabled_services:
+      - mysql
+    pmm2_client_mysql_login_host: instance-mysql
+    pmm2_client_mysql_login_password: root
   tasks:
     - name: "Include pmm2-client"
       include_role:

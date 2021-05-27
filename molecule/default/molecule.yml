@@ -30,14 +30,6 @@ platforms:
 provisioner:
   name: ansible
   inventory:
-    host_vars:
-      instance-pmm-client:
-        pmm2_client_disable_log: true
-        pmm2_client_server_host: instance-pmm-server
-        pmm2_client_enabled_services:
-          - mysql
-        pmm2_client_mysql_login_host: instance-mysql
-        pmm2_client_mysql_login_password: root
       instance-mysql:
         ansible_python_interpreter: /usr/bin/python3
 verifier:
