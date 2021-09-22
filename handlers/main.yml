@@ -6,5 +6,5 @@
 - name: restart pmm2-client
   systemd: 
     daemon_reload: true
-    name: pmm2-client
+    name: pmm-agent
     state: restarted
