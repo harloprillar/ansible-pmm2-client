@@ -1,5 +1,5 @@
 - name: Add pmm2 user to mysql instance
-  mysql_user:
+  community.mysql.mysql_user:
     login_user: "{{ pmm2_client_mysql_login_user }}"
     login_password: "{{ pmm2_client_mysql_login_password }}"
     login_host: "{{ pmm2_client_mysql_login_host }}"
@@ -12,7 +12,7 @@
   when: pmm2_client_mysql_create_user
 
 - name: Execute runtime mysql queries
-  mysql_query:
+  community.mysql.mysql_query:
     login_user: "{{ pmm2_client_mysql_login_user }}"
     login_password: "{{ pmm2_client_mysql_login_password }}"
     login_host: "{{ pmm2_client_mysql_login_host }}"
@@ -23,7 +23,7 @@
       - SET GLOBAL innodb_monitor_enable = all;
 
 - name: Determine mysql version
-  mysql_query:
+  community.mysql.mysql_query:
     login_user: "{{ pmm2_client_mysql_login_user }}"
     login_password: "{{ pmm2_client_mysql_login_password }}"
     login_host: "{{ pmm2_client_mysql_login_host }}"
@@ -32,7 +32,7 @@
   register: mysql_version
 
 - name: Determine mysql version comment
-  mysql_query:
+  community.mysql.mysql_query:
     login_user: "{{ pmm2_client_mysql_login_user }}"
     login_password: "{{ pmm2_client_mysql_login_password }}"
     login_host: "{{ pmm2_client_mysql_login_host }}"
@@ -41,7 +41,7 @@
   register: mysql_version_comment
 
 - name: Execute MariaDB 10.5.7 or lower runtime queries
-  mysql_query:
+  community.mysql.mysql_query:
     login_user: "{{ pmm2_client_mysql_login_user }}"
     login_password: "{{ pmm2_client_mysql_login_password }}"
     login_host: "{{ pmm2_client_mysql_login_host }}"
