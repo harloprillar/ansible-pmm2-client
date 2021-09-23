@@ -1,27 +1,3 @@
-- name: Add pmm2 user to mysql instance
-  community.mysql.mysql_user:
-    login_user: "{{ pmm2_client_mysql_login_user }}"
-    login_password: "{{ pmm2_client_mysql_login_password }}"
-    login_host: "{{ pmm2_client_mysql_login_host }}"
-    login_port: "{{ pmm2_client_mysql_login_port }}"
-    user: "{{ pmm2_client_mysql_user }}"
-    password: "{{ pmm2_client_mysql_password }}"
-    host: "{{ pmm2_client_mysql_host }}"
-    priv: "{{ pmm2_client_mysql_privileges }}"
-    state: present
-  when: pmm2_client_mysql_create_user
-
-- name: Execute runtime mysql queries
-  community.mysql.mysql_query:
-    login_user: "{{ pmm2_client_mysql_login_user }}"
-    login_password: "{{ pmm2_client_mysql_login_password }}"
-    login_host: "{{ pmm2_client_mysql_login_host }}"
-    login_port: "{{ pmm2_client_mysql_login_port }}"
-    login_db: performance_schema
-    query:
-      - UPDATE performance_schema.setup_consumers SET ENABLED = 'YES' WHERE NAME LIKE '%statements%';
-      - SET GLOBAL innodb_monitor_enable = all;
-
 - name: Determine mysql version
   community.mysql.mysql_query:
     login_user: "{{ pmm2_client_mysql_login_user }}"
@@ -40,19 +16,124 @@
     query: SHOW VARIABLES LIKE "version_comment";
   register: mysql_version_comment
 
-- name: Execute MariaDB 10.5.7 or lower runtime queries
-  community.mysql.mysql_query:
+- name: Add pmm2 user to mysql instance
+  community.mysql.mysql_user:
     login_user: "{{ pmm2_client_mysql_login_user }}"
     login_password: "{{ pmm2_client_mysql_login_password }}"
     login_host: "{{ pmm2_client_mysql_login_host }}"
     login_port: "{{ pmm2_client_mysql_login_port }}"
-    login_db: performance_schema
-    query:
-      - UPDATE performance_schema.setup_instruments SET ENABLED = 'YES', TIMED = 'YES' WHERE NAME LIKE 'statement/%';
-      - UPDATE performance_schema.setup_consumers SET ENABLED = 'YES' WHERE NAME LIKE '%statements%';
-  when: > 
-    mysql_version_comment.query_result.0.0.Value is regex('mariadb', ignorecase=true) and 
-    mysql_version.query_result.0.0.Value is version('10.5.7', '<=')
+    user: "{{ pmm2_client_mysql_user }}"
+    password: "{{ pmm2_client_mysql_password }}"
+    host: "{{ pmm2_client_mysql_host }}"
+    priv: "{{ pmm2_client_mysql_privileges }}"
+    state: present
+  when: pmm2_client_mysql_create_user
+
+- name: Configure performance schema metrics
+  block:
+
+  - name: Setting performance schema metrics variables
+    community.mysql.mysql_variables:
+      login_user: "{{ pmm2_client_mysql_login_user }}"
+      login_password: "{{ pmm2_client_mysql_login_password }}"
+      login_host: "{{ pmm2_client_mysql_login_host }}"
+      login_port: "{{ pmm2_client_mysql_login_port }}"
+      variable: "{{ item.variable }}"
+      value: "{{ item.value }}"
+      mode: persist
+    with_items:
+      - { variable: "performance_schema", value: "ON"} 
+      - { variable: "performance-schema-instrument", value: "'statement/%=ON'"} 
+      - { variable: "performance-schema-consumer-statements-digest", value: "ON"} 
+      - { variable: "innodb_monitor_enable", value: "all"} 
+
+  - name: Execute performance schema metrics queries
+    community.mysql.mysql_query:
+      login_user: "{{ pmm2_client_mysql_login_user }}"
+      login_password: "{{ pmm2_client_mysql_login_password }}"
+      login_host: "{{ pmm2_client_mysql_login_host }}"
+      login_port: "{{ pmm2_client_mysql_login_port }}"
+      login_db: performance_schema
+      query:
+        - UPDATE performance_schema.setup_consumers SET ENABLED = 'YES' WHERE NAME LIKE '%statements%';
+        - SET GLOBAL innodb_monitor_enable = all;  
+
+  - name: Execute MariaDB 10.5.7 or lower runtime queries
+    community.mysql.mysql_query:
+      login_user: "{{ pmm2_client_mysql_login_user }}"
+      login_password: "{{ pmm2_client_mysql_login_password }}"
+      login_host: "{{ pmm2_client_mysql_login_host }}"
+      login_port: "{{ pmm2_client_mysql_login_port }}"
+      login_db: performance_schema
+      query:
+        - UPDATE performance_schema.setup_instruments SET ENABLED = 'YES', TIMED = 'YES' WHERE NAME LIKE 'statement/%';
+        - UPDATE performance_schema.setup_consumers SET ENABLED = 'YES' WHERE NAME LIKE '%statements%';
+    when: > 
+      mysql_version_comment.query_result.0.0.Value is regex('mariadb', ignorecase=true) and 
+      mysql_version.query_result.0.0.Value is version('10.5.7', '<=')
+
+  when: >
+    pmm2_client_mysql_query_source == 'perfschema' and (
+      mysql_version_comment.query_result.0.0.Value is regex('mysql|percona', ignorecase=true) and 
+      mysql_version.query_result.0.0.Value is version('5.6', '>=')
+    ) or (
+      mysql_version_comment.query_result.0.0.Value is regex('mariadb', ignorecase=true) and 
+      mysql_version.query_result.0.0.Value is version('10.3', '>=')
+    )
+
+- name: Configure query response time metrics
+  block:
+
+  - name: Setting query response time variables
+    community.mysql.mysql_variables:
+      login_user: "{{ pmm2_client_mysql_login_user }}"
+      login_password: "{{ pmm2_client_mysql_login_password }}"
+      login_host: "{{ pmm2_client_mysql_login_host }}"
+      login_port: "{{ pmm2_client_mysql_login_port }}"
+      variable: query_response_time_stats
+      value: ON
+      mode: persist
+
+  - name: Install query response time plugins and enable query response time stats (mysql)
+    community.mysql.mysql_query:
+      login_user: "{{ pmm2_client_mysql_login_user }}"
+      login_password: "{{ pmm2_client_mysql_login_password }}"
+      login_host: "{{ pmm2_client_mysql_login_host }}"
+      login_port: "{{ pmm2_client_mysql_login_port }}"
+      login_db: performance_schema
+      query:
+        - INSTALL PLUGIN QUERY_RESPONSE_TIME_AUDIT SONAME 'query_response_time.so';
+        - INSTALL PLUGIN QUERY_RESPONSE_TIME SONAME 'query_response_time.so';
+        - INSTALL PLUGIN QUERY_RESPONSE_TIME_READ SONAME 'query_response_time.so';
+        - INSTALL PLUGIN QUERY_RESPONSE_TIME_WRITE SONAME 'query_response_time.so';
+        - SET GLOBAL query_response_time_stats = ON;
+    when: > 
+      mysql_version_comment.query_result.0.0.Value is regex('mysql|percona', ignorecase=true) and 
+      mysql_version.query_result.0.0.Value is version('5.7', '==')
+
+  - name: Install query response time plugins and enable query response time stats (mariadb)
+    community.mysql.mysql_query:
+      login_user: "{{ pmm2_client_mysql_login_user }}"
+      login_password: "{{ pmm2_client_mysql_login_password }}"
+      login_host: "{{ pmm2_client_mysql_login_host }}"
+      login_port: "{{ pmm2_client_mysql_login_port }}"
+      login_db: performance_schema
+      query:
+        - INSTALL PLUGIN QUERY_RESPONSE_TIME_AUDIT SONAME 'query_response_time.so';
+        - INSTALL PLUGIN QUERY_RESPONSE_TIME SONAME 'query_response_time.so';
+        - SET GLOBAL query_response_time_stats = ON;
+    when: > 
+      mysql_version_comment.query_result.0.0.Value is regex('mariadb', ignorecase=true) and 
+      mysql_version.query_result.0.0.Value is version('10.3', '==')  
+        
+  when: >
+    pmm2_client_mysql_enable_query_response_time_metrics and (
+      mysql_version_comment.query_result.0.0.Value is regex('mysql|percona', ignorecase=true) and 
+      mysql_version.query_result.0.0.Value is version('5.7', '==')
+    ) or (
+      mysql_version_comment.query_result.0.0.Value is regex('mariadb', ignorecase=true) and 
+      mysql_version.query_result.0.0.Value is version('10.3', '==')
+    )
 
 - name: Register mysql service to pmm2 server
   command: >-
@@ -63,4 +144,6 @@
     --query-source={{ pmm2_client_mysql_query_source | quote }}
     --host={{ pmm2_client_mysql_login_host | quote }}
     --port={{ pmm2_client_mysql_login_port | quote }}
-  when: 'ansible_nodename + "-mysql" not in pmm_admin_list.stdout'
+  when: >
+   'ansible_nodename + "-mysql" not in pmm_admin_list.stdout or
+   "mysql-" + ansible_nodename not in pmm_admin_list.stdout'

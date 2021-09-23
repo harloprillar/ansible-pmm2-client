@@ -34,6 +34,7 @@ Role Variables
 | `pmm2_client_mysql_host` | % | Mysql allowed hosts for PMM user. |
 | `pmm2_client_mysql_privileges` | \*.\*:SELECT,PROCESS,SUPER,REPLICATION CLIENT,RELOAD | Mysql privileges defined for PMM user. |
 | `pmm2_client_mysql_query_source` | perfschema | Mysql the query source. Currently only "perfschema" is supported |
+| `pmm2_client_mysql_enable_query_response_time_metrics` | true | Enable query response time metrics for mysql |
 
 
 Example Playbook

@@ -17,6 +17,18 @@
     name: pmm2-client
     state: present
 
+- name: Ensure python2-PyMySQL package installed
+  yum:
+    name: python2-PyMySQL
+    state: present
+  when: "ansible_os_family == 'RedHat'"
+
+- name: Ensure python-pymysql package installed
+  apt:
+    name: python-pymysql
+    state: present
+  when: "ansible_os_family == 'Debian'"
+
 # currently pmm-agent sends even non-error messages to stderr and the system log file which significantly clogs them
 - name: Disable logging
   block:
