@@ -1,5 +1,5 @@
 - name: Find mysql socket
-  shell: 'pgrep -xa mysqld | sed -r "s/.+--socket=([^ ]+).+/\1/"'
+  shell: 'set -o pipefail && pgrep -xa mysqld | sed -r "s/.+--socket=([^ ]+).+/\1/"'
   register: mysql_socket
   changed_when: false
   when: pmm2_client_mysql_login_host == 'localhost'
