@@ -22,7 +22,7 @@ pmm2_client_mysql_password: pmm
 pmm2_client_mysql_host: "%"
 pmm2_client_mysql_privileges: "*.*:SELECT,PROCESS,SUPER,REPLICATION CLIENT,RELOAD"
 pmm2_client_mysql_query_source: perfschema
-pmm2_client_mysql_enable_query_response_time_metrics: true
+pmm2_client_mysql_enable_query_response_time: true
 pmm2_client_mysql_disable_tablestats: false
 pmm2_client_mysql_disable_tablestats_limit: 1000
 pmm2_client_mysql_enable_user_statistics: true

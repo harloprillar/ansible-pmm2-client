@@ -35,7 +35,7 @@ Role Variables
 | `pmm2_client_mysql_host` | % | Mysql allowed hosts for PMM user. |
 | `pmm2_client_mysql_privileges` | \*.\*:SELECT,PROCESS,SUPER,REPLICATION CLIENT,RELOAD | Mysql privileges defined for PMM user. |
 | `pmm2_client_mysql_query_source` | perfschema | Mysql the query source. Currently only "perfschema" is supported |
-| `pmm2_client_mysql_enable_query_response_time_metrics` | true | Enable query response time metrics for mysql |
+| `pmm2_client_mysql_enable_query_response_time` | true | Enable query response time metrics for mysql |
 | `pmm2_client_mysql_disable_tablestats` | false | Disables tablestats collection when the default limit is reached (mysql) |
 | `pmm2_client_mysql_disable_tablestats_limit` | 1000 | Number of tables for which tablestats collection is disabled. 0 means no limit. (mysql) |
 | `pmm2_client_mysql_enable_user_statistics` | true | Enable user statistics for mysql |

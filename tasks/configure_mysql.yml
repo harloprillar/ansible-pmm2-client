@@ -43,8 +43,6 @@
       mode: persist_only
     with_items:
       - { variable: "performance_schema", value: "ON"} 
-      - { variable: "performance-schema-instrument", value: "'statement/%=ON'"} 
-      - { variable: "performance-schema-consumer-statements-digest", value: "ON"} 
       - { variable: "innodb_monitor_enable", value: "all"} 
     when: >
       mysql_version_comment.query_result.0.0.Value is regex('percona', ignorecase=true) and 
@@ -133,7 +131,7 @@
       mysql_version.query_result.0.0.Value is version('10.3', '==')  
 
   when: >
-    pmm2_client_mysql_enable_query_response_time_metrics and (
+    pmm2_client_mysql_enable_query_response_time and (
       mysql_version_comment.query_result.0.0.Value is regex('percona', ignorecase=true) and 
       mysql_version.query_result.0.0.Value is version('5.7', '==')
     ) or (
@@ -143,7 +141,7 @@
 
 - name: Configure user statistic
   block:
-  
+
   - name: Setting query response time variables
     community.mysql.mysql_variables:
       login_user: "{{ pmm2_client_mysql_login_user }}"
