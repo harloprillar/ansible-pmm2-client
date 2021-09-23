@@ -17,12 +17,12 @@
     command: pmm-admin list
     ignore_errors: yes
     changed_when: false
-    register: pmm_admin_list
+    register: pmm_admin_list_verify
 
   - name: Check if pmm_agent connected
     assert:
-      that: pmm_admin_list.stdout is regex("pmm_agent.+connected", ignorecase=true, multiline=true)
+      that: pmm_admin_list_verify.stdout is regex("pmm_agent.+connected", ignorecase=true, multiline=true)
 
   - name: Check if mysql service configured
     assert:
-      that: pmm_admin_list.stdout is regex("mysql.+{{ ansible_nodename }}-mysql", ignorecase=true, multiline=true)
+      that: pmm_admin_list_verify.stdout is regex("mysql.+{{ ansible_nodename }}-mysql", ignorecase=true, multiline=true)
