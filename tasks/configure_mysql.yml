@@ -1,9 +1,16 @@
+- name: Find mysql socket
+  shell: 'pgrep -xa mysqld | sed -r "s/.+--socket=([^ ]+).+/\1/"'
+  register: mysql_socket
+  changed_when: false
+  when: pmm2_client_mysql_login_host == 'localhost'
+
 - name: Determine mysql version
   community.mysql.mysql_query:
     login_user: "{{ pmm2_client_mysql_login_user }}"
     login_password: "{{ pmm2_client_mysql_login_password }}"
     login_host: "{{ pmm2_client_mysql_login_host }}"
     login_port: "{{ pmm2_client_mysql_login_port }}"
+    login_unix_socket: "{{ mysql_socket.stdout | default(omit) }}"
     query: SHOW VARIABLES LIKE "version";
   register: mysql_version
 
@@ -13,6 +20,7 @@
     login_password: "{{ pmm2_client_mysql_login_password }}"
     login_host: "{{ pmm2_client_mysql_login_host }}"
     login_port: "{{ pmm2_client_mysql_login_port }}"
+    login_unix_socket: "{{ mysql_socket.stdout | default(omit) }}"
     query: SHOW VARIABLES LIKE "version_comment";
   register: mysql_version_comment
 
@@ -22,6 +30,7 @@
     login_password: "{{ pmm2_client_mysql_login_password }}"
     login_host: "{{ pmm2_client_mysql_login_host }}"
     login_port: "{{ pmm2_client_mysql_login_port }}"
+    login_unix_socket: "{{ mysql_socket.stdout | default(omit) }}"
     user: "{{ pmm2_client_mysql_user }}"
     password: "{{ pmm2_client_mysql_password }}"
     host: "{{ pmm2_client_mysql_host }}"
@@ -38,6 +47,7 @@
       login_password: "{{ pmm2_client_mysql_login_password }}"
       login_host: "{{ pmm2_client_mysql_login_host }}"
       login_port: "{{ pmm2_client_mysql_login_port }}"
+      login_unix_socket: "{{ mysql_socket.stdout | default(omit) }}"
       variable: "{{ item.variable }}"
       value: "{{ item.value }}"
       mode: persist_only
@@ -54,6 +64,7 @@
       login_password: "{{ pmm2_client_mysql_login_password }}"
       login_host: "{{ pmm2_client_mysql_login_host }}"
       login_port: "{{ pmm2_client_mysql_login_port }}"
+      login_unix_socket: "{{ mysql_socket.stdout | default(omit) }}"
       login_db: performance_schema
       query:
         - UPDATE performance_schema.setup_consumers SET ENABLED = 'YES' WHERE NAME LIKE '%statements%';
@@ -65,6 +76,7 @@
       login_password: "{{ pmm2_client_mysql_login_password }}"
       login_host: "{{ pmm2_client_mysql_login_host }}"
       login_port: "{{ pmm2_client_mysql_login_port }}"
+      login_unix_socket: "{{ mysql_socket.stdout | default(omit) }}"
       login_db: performance_schema
       query:
         - UPDATE performance_schema.setup_instruments SET ENABLED = 'YES', TIMED = 'YES' WHERE NAME LIKE 'statement/%';
@@ -91,6 +103,7 @@
       login_password: "{{ pmm2_client_mysql_login_password }}"
       login_host: "{{ pmm2_client_mysql_login_host }}"
       login_port: "{{ pmm2_client_mysql_login_port }}"
+      login_unix_socket: "{{ mysql_socket.stdout | default(omit) }}"
       variable: query_response_time_stats
       value: "ON"
       mode: persist_only
@@ -104,6 +117,7 @@
       login_password: "{{ pmm2_client_mysql_login_password }}"
       login_host: "{{ pmm2_client_mysql_login_host }}"
       login_port: "{{ pmm2_client_mysql_login_port }}"
+      login_unix_socket: "{{ mysql_socket.stdout | default(omit) }}"
       login_db: performance_schema
       query:
         - INSTALL PLUGIN QUERY_RESPONSE_TIME_AUDIT SONAME 'query_response_time.so';
@@ -121,6 +135,7 @@
       login_password: "{{ pmm2_client_mysql_login_password }}"
       login_host: "{{ pmm2_client_mysql_login_host }}"
       login_port: "{{ pmm2_client_mysql_login_port }}"
+      login_unix_socket: "{{ mysql_socket.stdout | default(omit) }}"
       login_db: performance_schema
       query:
         - INSTALL PLUGIN QUERY_RESPONSE_TIME_AUDIT SONAME 'query_response_time.so';
@@ -148,6 +163,7 @@
       login_password: "{{ pmm2_client_mysql_login_password }}"
       login_host: "{{ pmm2_client_mysql_login_host }}"
       login_port: "{{ pmm2_client_mysql_login_port }}"
+      login_unix_socket: "{{ mysql_socket.stdout | default(omit) }}"
       variable: userstat
       value: "ON"
       mode: persist_only
@@ -161,6 +177,7 @@
       login_password: "{{ pmm2_client_mysql_login_password }}"
       login_host: "{{ pmm2_client_mysql_login_host }}"
       login_port: "{{ pmm2_client_mysql_login_port }}"
+      login_unix_socket: "{{ mysql_socket.stdout | default(omit) }}"
       login_db: performance_schema
       query:
         - SET GLOBAL userstat = ON;
