@@ -40,12 +40,15 @@
       login_port: "{{ pmm2_client_mysql_login_port }}"
       variable: "{{ item.variable }}"
       value: "{{ item.value }}"
-      mode: persist
+      mode: persist_only
     with_items:
       - { variable: "performance_schema", value: "ON"} 
       - { variable: "performance-schema-instrument", value: "'statement/%=ON'"} 
       - { variable: "performance-schema-consumer-statements-digest", value: "ON"} 
       - { variable: "innodb_monitor_enable", value: "all"} 
+    when: >
+      mysql_version_comment.query_result.0.0.Value is regex('percona', ignorecase=true) and 
+      mysql_version.query_result.0.0.Value is version('8.0', '>=')
 
   - name: Execute performance schema metrics queries
     community.mysql.mysql_query:
@@ -74,7 +77,7 @@
 
   when: >
     pmm2_client_mysql_query_source == 'perfschema' and (
-      mysql_version_comment.query_result.0.0.Value is regex('mysql|percona', ignorecase=true) and 
+      mysql_version_comment.query_result.0.0.Value is regex('percona', ignorecase=true) and 
       mysql_version.query_result.0.0.Value is version('5.6', '>=')
     ) or (
       mysql_version_comment.query_result.0.0.Value is regex('mariadb', ignorecase=true) and 
@@ -91,8 +94,11 @@
       login_host: "{{ pmm2_client_mysql_login_host }}"
       login_port: "{{ pmm2_client_mysql_login_port }}"
       variable: query_response_time_stats
-      value: ON
-      mode: persist
+      value: "ON"
+      mode: persist_only
+    when: >
+      mysql_version_comment.query_result.0.0.Value is regex('percona', ignorecase=true) and 
+      mysql_version.query_result.0.0.Value is version('8.0', '>=')
 
   - name: Install query response time plugins and enable query response time stats (mysql)
     community.mysql.mysql_query:
@@ -108,7 +114,7 @@
         - INSTALL PLUGIN QUERY_RESPONSE_TIME_WRITE SONAME 'query_response_time.so';
         - SET GLOBAL query_response_time_stats = ON;
     when: > 
-      mysql_version_comment.query_result.0.0.Value is regex('mysql|percona', ignorecase=true) and 
+      mysql_version_comment.query_result.0.0.Value is regex('percona', ignorecase=true) and 
       mysql_version.query_result.0.0.Value is version('5.7', '==')
 
   - name: Install query response time plugins and enable query response time stats (mariadb)
@@ -125,14 +131,48 @@
     when: > 
       mysql_version_comment.query_result.0.0.Value is regex('mariadb', ignorecase=true) and 
       mysql_version.query_result.0.0.Value is version('10.3', '==')  
-        
+
   when: >
     pmm2_client_mysql_enable_query_response_time_metrics and (
-      mysql_version_comment.query_result.0.0.Value is regex('mysql|percona', ignorecase=true) and 
+      mysql_version_comment.query_result.0.0.Value is regex('percona', ignorecase=true) and 
       mysql_version.query_result.0.0.Value is version('5.7', '==')
     ) or (
       mysql_version_comment.query_result.0.0.Value is regex('mariadb', ignorecase=true) and 
       mysql_version.query_result.0.0.Value is version('10.3', '==')
+    )
+
+- name: Configure user statistic
+  block:
+  
+  - name: Setting query response time variables
+    community.mysql.mysql_variables:
+      login_user: "{{ pmm2_client_mysql_login_user }}"
+      login_password: "{{ pmm2_client_mysql_login_password }}"
+      login_host: "{{ pmm2_client_mysql_login_host }}"
+      login_port: "{{ pmm2_client_mysql_login_port }}"
+      variable: userstat
+      value: "ON"
+      mode: persist_only
+    when: >
+      mysql_version_comment.query_result.0.0.Value is regex('percona', ignorecase=true) and 
+      mysql_version.query_result.0.0.Value is version('8.0', '>=')
+
+  - name: Install query response time plugins and enable query response time stats (mysql)
+    community.mysql.mysql_query:
+      login_user: "{{ pmm2_client_mysql_login_user }}"
+      login_password: "{{ pmm2_client_mysql_login_password }}"
+      login_host: "{{ pmm2_client_mysql_login_host }}"
+      login_port: "{{ pmm2_client_mysql_login_port }}"
+      login_db: performance_schema
+      query:
+        - SET GLOBAL userstat = ON;
+  when: >
+    pmm2_client_mysql_enable_user_statistics and (
+      mysql_version_comment.query_result.0.0.Value is regex('percona', ignorecase=true) and 
+      mysql_version.query_result.0.0.Value is version('5.6', '>=')
+    ) or (
+      mysql_version_comment.query_result.0.0.Value is regex('mariadb', ignorecase=true) and 
+      mysql_version.query_result.0.0.Value is version('5.2', '>=')
     )
 
 - name: Register mysql service to pmm2 server
@@ -141,6 +181,8 @@
     --username={{ pmm2_client_mysql_user | quote }}
     --password={{ pmm2_client_mysql_password | quote }}
     {{ "--tls --tls-skip-verify" if pmm2_client_mysql_enable_tls else "" }}
+    {{ "--disable-tablestats" if pmm2_client_mysql_disable_tablestats else "" }}
+    {{ "--disable-tablestats-limit="+pmm2_client_mysql_disable_tablestats_limit if pmm2_client_mysql_disable_tablestats else "" }}
     --query-source={{ pmm2_client_mysql_query_source | quote }}
     --host={{ pmm2_client_mysql_login_host | quote }}
     --port={{ pmm2_client_mysql_login_port | quote }}

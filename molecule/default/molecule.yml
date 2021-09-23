@@ -11,7 +11,7 @@ platforms:
     networks:
       - name: molecule
   - name: instance-mysql
-    image: mysql:8.0
+    image: percona:8
     pre_build_image: true
     override_command: false
     env:
