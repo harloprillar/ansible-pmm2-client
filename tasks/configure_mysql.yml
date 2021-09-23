@@ -185,5 +185,5 @@
     --host={{ pmm2_client_mysql_login_host | quote }}
     --port={{ pmm2_client_mysql_login_port | quote }}
   when: >
-   'ansible_nodename + "-mysql" not in pmm_admin_list.stdout or
+   'ansible_nodename + "-mysql" not in pmm_admin_list.stdout and
    "mysql-" + ansible_nodename not in pmm_admin_list.stdout'
