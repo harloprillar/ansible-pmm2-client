@@ -1,6 +1,4 @@
 ---
-collections:
- - community.mysql
 galaxy_info:
   role_name: pmm2_client
   author: harloprillar
