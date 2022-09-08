@@ -19,7 +19,7 @@ platforms:
     networks:
       - name: molecule
   - name: instance-pmm-client
-    image: rockylinux:9
+    image: instance-pmm-client
     pre_build_image: false
     privileged: true
     command: /sbin/init
